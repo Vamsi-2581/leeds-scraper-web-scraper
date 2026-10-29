@@ -171,14 +171,25 @@ function pageLinks($, url) {
     500,
   );
 }
+function mailtoAddress(href) {
+  let address;
+  try {
+    address = decodeURIComponent(href.slice(7).split("?")[0]);
+  } catch {
+    return null;
+  }
+  const email = clip(address, 254);
+  return email && new RegExp("^(?:" + EMAIL.source + ")$", "i").test(email) ? email : null;
+}
+
 function contactsFrom($, url, links, entities) {
   const text = $("body").text();
   const fromLd = (key) =>
     entities.flatMap((e) => [].concat(e[key] ?? [], e.contactPoint?.[key] ?? []));
   const emails = unique(
     [
-      ...$('a[href^="mailto:"]')
-        .map((_, a) => clip($(a).attr("href").slice(7).split("?")[0], 254))
+      ...$('a[href^="mailto:" i]')
+        .map((_, a) => mailtoAddress($(a).attr("href")))
         .get(),
       ...(text.match(EMAIL) || []),
       ...fromLd("email").map((e) => clip(String(e).replace(/^mailto:/i, ""), 254)),
