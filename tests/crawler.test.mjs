@@ -33,6 +33,12 @@ test('page extractors keep source identity and collect their fields',()=>{
  }
 });
 
+test('contact extractor decodes case-insensitive mailto links and skips malformed addresses',()=>{
+ const page='<html><body><a href="MAILTO:Info@Example.com">Uppercase scheme</a><a href="mailto:sales%40example.com">Encoded address</a><a href="mailto:%E0%A4%A">Malformed address</a></body></html>';
+ const [record]=extractHtml('contact-extractor',page,'https://example.com/').records;
+ assert.deepEqual(record.emails,['info@example.com','sales@example.com']);
+});
+
 test('markdown keeps headings, lists, tables, code and safe links only',()=>{
  const page='<html><body><main><h2>Plans</h2><p>Some <strong>bold</strong> and <em>soft</em> text with <code>npm ci</code>.</p><ul><li>One<ul><li>Nested</li></ul></li><li>Two</li></ul><ol><li>First</li></ol><table><tr><th>Plan</th><th>Price</th></tr><tr><td>Basic | cheap</td><td>$5</td></tr></table><pre><code>line 1\n  line 2</code></pre><blockquote>Quoted</blockquote><a href="javascript:alert(1)">bad link</a><img src="/a.png" alt="Chart"></main></body></html>';
  const {records:[{markdown}]}=extractHtml('page-markdown',page,'https://example.com/');
